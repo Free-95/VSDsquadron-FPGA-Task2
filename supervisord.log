@@ -1,0 +1,79 @@
+2025-12-18 18:37:31,468 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2025-12-18 18:37:31,474 INFO supervisord started with pid 1
+2025-12-18 18:37:32,479 INFO spawned: 'X11' with pid 7
+2025-12-18 18:37:32,483 INFO spawned: 'novnc' with pid 8
+2025-12-18 18:37:32,486 INFO spawned: 'x11vnc' with pid 9
+2025-12-18 18:37:32,489 INFO spawned: 'xfce4' with pid 10
+2025-12-18 18:37:32,861 INFO reaped unknown pid 55 (exit status 1)
+2025-12-18 18:37:33,945 INFO success: X11 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-18 18:37:33,948 INFO success: novnc entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-18 18:37:33,948 INFO success: x11vnc entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-18 18:37:33,949 INFO success: xfce4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-18 18:38:39,028 INFO reaped unknown pid 202 (exit status 0)
+2025-12-18 18:39:13,351 WARN received SIGINT indicating exit request
+2025-12-18 18:39:13,352 INFO waiting for X11, novnc, x11vnc, xfce4 to die
+2025-12-18 18:39:13,360 INFO stopped: xfce4 (terminated by SIGTERM)
+2025-12-18 18:39:13,364 INFO stopped: x11vnc (exit status 2)
+2025-12-18 18:39:13,402 INFO stopped: novnc (exit status 0)
+2025-12-18 18:39:13,446 INFO stopped: X11 (exit status 0)
+2025-12-18 18:39:13,446 INFO reaped unknown pid 25 (exit status 0)
+2025-12-18 18:39:13,447 INFO reaped unknown pid 27 (exit status 0)
+2025-12-18 18:39:13,447 INFO reaped unknown pid 36 (exit status 0)
+2025-12-18 18:39:13,448 INFO reaped unknown pid 42 (exit status 1)
+2025-12-18 18:39:13,448 INFO reaped unknown pid 50 (terminated by SIGTERM)
+2025-12-18 18:39:13,448 INFO reaped unknown pid 44 (exit status 1)
+2025-12-18 18:39:13,449 INFO reaped unknown pid 118 (terminated by SIGTERM)
+2025-12-18 18:39:13,449 INFO reaped unknown pid 99 (terminated by SIGTERM)
+2025-12-18 18:39:13,449 INFO reaped unknown pid 153 (exit status 0)
+2025-12-18 18:39:13,450 INFO reaped unknown pid 203 (terminated by SIGTERM)
+2025-12-18 18:39:13,450 INFO reaped unknown pid 65 (exit status 1)
+2025-12-18 18:39:13,450 INFO reaped unknown pid 73 (exit status 1)
+2025-12-18 18:39:13,450 INFO reaped unknown pid 76 (exit status 1)
+2025-12-18 18:39:13,451 INFO reaped unknown pid 80 (terminated by SIGTERM)
+2025-12-18 18:39:13,451 INFO reaped unknown pid 93 (terminated by SIGTERM)
+2025-12-18 18:39:13,451 INFO reaped unknown pid 143 (terminated by SIGTERM)
+2025-12-18 18:39:13,452 INFO reaped unknown pid 89 (exit status 1)
+2025-12-18 18:39:13,452 INFO reaped unknown pid 228 (terminated by SIGHUP)
+2025-12-18 18:39:13,452 INFO reaped unknown pid 139 (exit status 1)
+2025-12-18 18:39:13,453 INFO reaped unknown pid 140 (exit status 1)
+2025-12-18 18:39:13,453 INFO reaped unknown pid 142 (exit status 1)
+2025-12-19 10:52:46,768 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2025-12-19 10:52:46,774 INFO supervisord started with pid 1
+2025-12-19 10:52:47,777 INFO spawned: 'X11' with pid 7
+2025-12-19 10:52:47,781 INFO spawned: 'novnc' with pid 8
+2025-12-19 10:52:47,785 INFO spawned: 'x11vnc' with pid 9
+2025-12-19 10:52:47,787 INFO spawned: 'xfce4' with pid 10
+2025-12-19 10:52:48,456 INFO reaped unknown pid 52 (exit status 1)
+2025-12-19 10:52:48,859 INFO success: X11 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-19 10:52:48,859 INFO success: novnc entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-19 10:52:48,860 INFO success: x11vnc entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-19 10:52:48,860 INFO success: xfce4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-12-19 10:53:44,034 INFO reaped unknown pid 198 (exit status 0)
+2025-12-19 10:57:43,248 INFO reaped unknown pid 95 (exit status 0)
+2025-12-19 11:12:19,240 INFO reaped unknown pid 269 (exit status 1)
+2025-12-19 11:33:46,587 INFO reaped unknown pid 199 (exit status 0)
+2025-12-19 11:34:29,738 WARN received SIGINT indicating exit request
+2025-12-19 11:34:29,742 INFO waiting for X11, novnc, x11vnc, xfce4 to die
+2025-12-19 11:34:29,756 INFO stopped: xfce4 (terminated by SIGTERM)
+2025-12-19 11:34:29,779 INFO stopped: x11vnc (exit status 2)
+2025-12-19 11:34:31,015 INFO stopped: novnc (exit status 0)
+2025-12-19 11:34:31,103 INFO stopped: X11 (exit status 0)
+2025-12-19 11:34:31,103 INFO reaped unknown pid 22 (exit status 0)
+2025-12-19 11:34:31,104 INFO reaped unknown pid 24 (exit status 0)
+2025-12-19 11:34:31,105 INFO reaped unknown pid 33 (exit status 0)
+2025-12-19 11:34:31,105 INFO reaped unknown pid 39 (exit status 1)
+2025-12-19 11:34:31,106 INFO reaped unknown pid 47 (terminated by SIGTERM)
+2025-12-19 11:34:31,106 INFO reaped unknown pid 41 (exit status 1)
+2025-12-19 11:34:31,106 INFO reaped unknown pid 127 (terminated by SIGTERM)
+2025-12-19 11:34:31,107 INFO reaped unknown pid 155 (exit status 0)
+2025-12-19 11:34:31,107 INFO reaped unknown pid 62 (exit status 1)
+2025-12-19 11:34:31,107 INFO reaped unknown pid 70 (exit status 1)
+2025-12-19 11:34:31,108 INFO reaped unknown pid 73 (exit status 1)
+2025-12-19 11:34:31,108 INFO reaped unknown pid 77 (terminated by SIGTERM)
+2025-12-19 11:34:31,108 INFO reaped unknown pid 86 (exit status 1)
+2025-12-19 11:34:31,109 INFO reaped unknown pid 90 (terminated by SIGTERM)
+2025-12-19 11:34:31,109 INFO reaped unknown pid 149 (terminated by SIGTERM)
+2025-12-19 11:34:31,110 INFO reaped unknown pid 114 (exit status 1)
+2025-12-19 11:34:31,110 INFO reaped unknown pid 115 (exit status 1)
+2025-12-19 11:34:31,110 INFO reaped unknown pid 116 (exit status 1)
+2025-12-19 11:34:31,111 INFO reaped unknown pid 123 (terminated by SIGTERM)
