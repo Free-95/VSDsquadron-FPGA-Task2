@@ -24,13 +24,15 @@ ___
 **Commands:**
 ```bash
 riscv64-unknown-elf-gcc --version
-spike --version
+spike -h
 iverilog -V
 ```
 
-**Output:**
+**Outputs:**
 
 ![](images/2.png)
+![](images/3.png)
+![](images/4.png)
 
 
 ### Program 1 : `sum1ton.c`
@@ -46,7 +48,7 @@ spike pk sum1ton.o
 
 **Output:**
 
-![](images/3.png)
+![](images/5.png)
 
 
 ### Program 2 : `1ton_custom.c`
@@ -60,7 +62,7 @@ spike pk 1ton_custom.o
 
 **Output:**
 
-![](images/4.png)
+![](images/6.png)
 
 
 ### Custom Program : `factorial.c`
@@ -72,7 +74,7 @@ spike pk factorial.o
 
 **Output:**
 
-![](images/5.png)
+![](images/7.png)
 
 
 ### Verilog Program : `adder.v` (with testbench `tb.v`)
@@ -86,7 +88,7 @@ vvp adder
 
 **Output:**
 
-![](images/6.png)
+![](images/8.png)
 ___
 ## Verifying the Working of GUI Desktop (noVNC)
 
@@ -99,13 +101,13 @@ ___
 4. Compare the native and RISC-V compilers by running a program using both.
 
 ### Glimpse of Desktop
-![](images/7.png)
+![](images/9.png)
 
 ### Run Program using Native GCC
-![](images/8.png)
+![](images/10.png)
 
 ### Run Program using RISC-V GCC and Spike
-![](images/9.png)
+![](images/11.png)
 ___
 ## Clone and Build the VSDFPGA Labs
 
@@ -143,7 +145,7 @@ git clone https://github.com/vsdip/vsdfpga_labs
 ```
 
 **Verification of successful cloning:**
-![](images/10.png)
+![](images/12.png)
 
 ### Building the Firmware and FPGA bitstream 
 #### **Reviewing RISC-V Logo code :**
@@ -155,7 +157,7 @@ make riscv_logo.bram.hex
 ```
 
 **Output:**
-![](images/11.png)
+![](images/13.png)
 
 #### **Build Firmware and FPGA bitstream :**
 **Commands:**
@@ -167,7 +169,7 @@ make build
 ```
 
 **Output:**
-![](images/12.png)
+![](images/14.png)
 ___
 ## Local Machine Preparation
 
@@ -248,7 +250,7 @@ spike pk sum1ton.o
 ```
 
 **Output:**
-![](images/13.png)
+![](images/15.jpeg)
 
 **Native GCC Commands:**
 ```bash
@@ -257,7 +259,7 @@ gcc sum1ton.c
 ```
 
 **Output:**
-![](images/14.png)
+![](images/16.jpeg)
 
 ### FPGA Toolchain Installation and Testing 
 **Installation Commands:**
@@ -304,13 +306,13 @@ make terminal
 ```
 
 **Firmware Build Output:**
-![](images/15.png)
+![](images/17.jpeg)
 
 **Flash Verification:**
-![](images/16.png)
+![](images/18.jpeg)
 
 **Glance of FPGA:**
-![](images/17.png)
+![](images/19.jpeg)
 ___
 ## Understanding Check
 
