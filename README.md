@@ -169,6 +169,7 @@ make build
 ```
 
 **Output:**
+
 ![](images/14.png)
 ___
 ## Local Machine Preparation
@@ -259,6 +260,7 @@ gcc sum1ton.c
 ```
 
 **Output:**
+
 ![](images/16.jpeg)
 
 ### FPGA Toolchain Installation and Testing 
@@ -309,9 +311,11 @@ make terminal
 ![](images/17.jpeg)
 
 **Flash Verification:**
+
 ![](images/18.jpeg)
 
 **Glance of FPGA:**
+
 ![](images/19.jpeg)
 ___
 ## Understanding Check
