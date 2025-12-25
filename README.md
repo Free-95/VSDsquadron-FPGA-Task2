@@ -1,3 +1,5 @@
+
+https://github.com/user-attachments/assets/69be07fc-57e7-420e-91f5-45c259bb12ca
 # VSDSquadron FPGA Mini Internship - Task 2 Submission
 
 >**Objective:** Design a simple memory-mapped IP, integrate it into the existing RISC-V SoC, and validate it through simulation. Also perform hardware validation on the FPGA board.
@@ -355,7 +357,7 @@ endmodule
    gtkwave gpio_test.vcd
    ```
 
-   !(counter waveform)[images/waveform.png]
+   ![counter waveform](images/waveform.png)
    This waveform confirms that the counter created in software application `gpio.c` is being exhibited by the hardware through the GPIO IP.
 ___
 ## How CPU accesses the IP
@@ -427,4 +429,5 @@ ___
    make flash
    ```
 4. Make the physical connections and observe the output.
-	!()[images/hardware.png]
+	<video src="[user-images.githubusercontent.com](https://github.com/user-attachments/assets/298b8525-78ad-466e-b0fd-c355238c6915)" controls width="500">![Counter video](https://github.com/user-attachments/assets/298b8525-78ad-466e-b0fd-c355238c6915)</video>
+
