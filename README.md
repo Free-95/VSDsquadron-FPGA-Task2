@@ -1,352 +1,373 @@
-# VSDSquadron FPGA Mini Internship - Task 1 Submission
+# VSDSquadron FPGA Mini Internship - Task 2 Submission
 
-## Setting up GitHub Codespace
+>**Objective:** Design a simple memory-mapped IP, integrate it into the existing RISC-V SoC, and validate it through simulation. Also perform hardware validation on the FPGA board.
 
->Fork the `vsd-riscv2` repository and create a GitHub codespace
+## IP Specification
+**Name:** Simple GPIO Output IP
 
-**Steps:**
-1. Fork the repository - https://github.com/vsdip/vsd-riscv2
-2. Launch the GitHub Codespace and build it successfully.
+**Functionality:**
+- One 32-bit register
+- Writing to the register updates the state of 4 external LEDs
+- Reading the register returns the last written value
 
-**Glimpse of Codespace:**
-![](images/1.png)
+**Interface:**
+- Memory-mapped, connected to the existing CPU bus
+- Uses the same bus signals already present in the SoC
+
+**Address Map:**
+- Address Bit 0 is selected as the decoder for the IP.
+- Base Address: `0x400000`
+- Offset: `0x04` (Bit 0 set → `...0100`)
 ___
-## Verifying RISC-V Reference Flow
+## Writing the IP RTL
 
->Build and run the provided fundamental RISC-V programs, and observe successful execution on console 
+**Module Features:**
+1. Register storage
+2. Write logic
+3. Readback logic
 
-**Steps:**
-1. Verify the setup.
-2. Run the provided programs using RISC-V GCC and Spike.
-3. Test the working of RISC-V GCC, Spike and Iverilog using custom programs.
+**Verilog Source Code:**
+```verilog
+module simple_gpio_output_ip (
+    input             clk,
+    input             resetn,
+    // Bus Interface
+    input             i_sel,      // Chip Select
+    input             i_we,       // Write Enable
+    input      [31:0] i_wdata,    // Data from CPU
+    output     [31:0] o_rdata,    // Data to CPU (Readback)
+    // External Interface
+    output      [3:0] o_gpio
+);
 
-### Setup Verification
-**Commands:**
-```bash
-riscv64-unknown-elf-gcc --version
-spike -h
-iverilog -V
+   reg [31:0] storage;
+
+    // Write Logic
+    always @(posedge clk) begin
+        if (!resetn) begin
+            storage <= 32'b0;
+        end else if (i_sel && i_we) begin
+            storage <= i_wdata;
+        end
+    end
+
+    // Readback Logic
+    assign o_rdata = storage;
+
+    // Output Logic
+    assign o_gpio = storage[3:0];
+
+endmodule
 ```
-
-**Outputs:**
-
-![](images/2.png)
-![](images/3.png)
-![](images/4.png)
-
-
-### Program 1 : `sum1ton.c`
-**Commands:**
-```bash
-# Navigate to 'samples' directory
-cd samples 
-# Compile the program
-riscv64-unknown-elf-gcc -o sum1ton.o sum1ton.c
-# Load and execute the program
-spike pk sum1ton.o
-```
-
-**Output:**
-
-![](images/5.png)
-
-
-### Program 2 : `1ton_custom.c`
-**Commands:**
-```bash
-# Compile the program and link with assembly code
-riscv64-unknown-elf-gcc -o 1ton_custom.o 1ton_custom.c load.S
-# Load and execute the program
-spike pk 1ton_custom.o
-```
-
-**Output:**
-
-![](images/6.png)
-
-
-### Custom Program : `factorial.c`
-**Commands:**
-```bash
-riscv64-unknown-elf-gcc -o factorial.o factorial.c
-spike pk factorial.o
-```
-
-**Output:**
-
-![](images/7.png)
-
-
-### Verilog Program : `adder.v` (with testbench `tb.v`)
-**Commands:**
-```bash
-# Compile the Verilog program
-iverilog -o adder adder.v tb.v
-# Simulate the testbench
-vvp adder
-```
-
-**Output:**
-
-![](images/8.png)
 ___
-## Verifying the Working of GUI Desktop (noVNC)
+## Integrating the IP into SoC
 
->Build and run programs using Native GCC and RISC-V GCC on noVNC desktop
+**Update `riscv.v`:**
+Make the following updates in the `SOC` module -
+1. Include the instantiation of `simple_gpio_output_ip` module.
+2. Create `wire gpio_sel = isIO & mem_wordaddr[IO_GPIO_bit]`.
+3. Update the `IO_rdata` logic to return `gpio_rdata` when the CPU reads from the GPIO address.
+```verilog
+module SOC (
+   //  input 	     CLK,  // system clock 
+    input 	     RESET,// reset button
+    output     [3:0] LEDS, 
+    input 	     RXD,  // UART receive
+    output 	     TXD   // UART transmit
+);
 
-**Steps:**
-1. Launch the noVNC Desktop by clicking on the Forwarded Address Link for port `noVNC Desktop 6080` in `PORTS` tab.
-2. Click on `vnc_lite.html` in the new browser tab that opens after Step 1. 
-3. Open the terminal in noVNC desktop.
-4. Compare the native and RISC-V compilers by running a program using both.
+   wire clk;
+   wire resetn;
 
-### Glimpse of Desktop
-![](images/9.png)
+   wire [31:0] mem_addr;
+   wire [31:0] mem_rdata;
+   wire mem_rstrb;
+   wire [31:0] mem_wdata;
+   wire [3:0]  mem_wmask;
+   wire [31:0] gpio_rdata;
 
-### Run Program using Native GCC
-![](images/10.png)
+   Processor CPU(
+      .clk(clk),
+      .resetn(resetn),		 
+      .mem_addr(mem_addr),
+      .mem_rdata(mem_rdata),
+      .mem_rstrb(mem_rstrb),
+      .mem_wdata(mem_wdata),
+      .mem_wmask(mem_wmask)
+   );
+   
+   wire [31:0] RAM_rdata;
+   wire [29:0] mem_wordaddr = mem_addr[31:2];
+   wire isIO  = mem_addr[22];
+   wire isRAM = !isIO;
+   wire mem_wstrb = |mem_wmask;   
 
-### Run Program using RISC-V GCC and Spike
-![](images/11.png)
+   Memory RAM(
+      .clk(clk),
+      .mem_addr(mem_addr),
+      .mem_rdata(RAM_rdata),
+      .mem_rstrb(isRAM & mem_rstrb),
+      .mem_wdata(mem_wdata),
+      .mem_wmask({4{isRAM}}&mem_wmask)
+   );
+
+
+   // Memory-mapped IO in IO page, 1-hot addressing in word address.   
+   localparam IO_GPIO_bit      = 0;  // GPIO 
+   localparam IO_UART_DAT_bit  = 1;  // W data to send (8 bits) 
+   localparam IO_UART_CNTL_bit = 2;  // R status. bit 9: busy sending
+   
+   wire uart_valid = isIO & mem_wstrb & mem_wordaddr[IO_UART_DAT_bit];
+   wire uart_ready;
+   wire gpio_sel = isIO & mem_wordaddr[IO_GPIO_bit];
+
+   corescore_emitter_uart #(
+      .clk_freq_hz(12*1000000),
+      .baud_rate(9600)
+      //   .baud_rate(1000000)
+   ) UART(
+      .i_clk(clk),
+      .i_rst(!resetn),
+      .i_data(mem_wdata[7:0]),
+      .i_valid(uart_valid),
+      .o_ready(uart_ready),
+      .o_uart_tx(TXD)      			       
+   );
+
+   wire [31:0] IO_rdata = 
+           mem_wordaddr[IO_UART_CNTL_bit] ? { 22'b0, !uart_ready, 9'b0} :
+           mem_wordaddr[IO_GPIO_bit]      ? gpio_rdata :     
+                                            32'b0;
+   
+   assign mem_rdata = isRAM ? RAM_rdata :
+	                      IO_rdata ;
+   
+   
+`ifdef BENCH
+   always @(posedge clk) begin
+      if(uart_valid) begin
+	 $write("%c", mem_wdata[7:0] );
+	 $fflush(32'h8000_0001);
+      end
+   end
+`endif   
+   
+   wire clk_int;
+
+   SB_HFOSC #(
+   .CLKHF_DIV("0b10") // 12 MHz
+   ) hfosc (
+      .CLKHFPU(1'b1),
+      .CLKHFEN(1'b1),
+      .CLKHF(clk_int)
+   );
+
+
+
+   // Gearbox and reset circuitry.
+   Clockworks CW(
+     .CLK(clk_int),
+     .RESET(RESET),
+     .clk(clk),
+     .resetn(resetn)
+   );
+
+   // GPIO IP
+   simple_gpio_output_ip MyGPIO (
+       .clk(clk),
+       .resetn(resetn),
+       .i_sel(gpio_sel),
+       .i_we(mem_wstrb),       // mem_wstrb is high on write
+       .i_wdata(mem_wdata),
+       .o_rdata(gpio_rdata),
+       .o_gpio(LEDS)
+   );
+
+endmodule
+```
+
+**Update `VSDSquadronFM.pcf`:**
+Map output ports of IP to GPIOs on board -
+```pcf
+# Clock & Reset
+set_io CLK 21
+set_io RESET 10
+
+# UART
+set_io TXD 11
+set_io RXD 12
+
+# --- GPIO Pins ---
+set_io LEDS[0] 38  # Bit 0 (LSB)
+set_io LEDS[1] 43  # Bit 1
+set_io LEDS[2] 45  # Bit 2
+set_io LEDS[3] 47  # Bit 3 (MSB)
+```
 ___
-## Clone and Build the VSDFPGA Labs
+## Firmware Development
 
->Build and run the basic labs that do not require FPGA hardware
+**Software Application `gpio.c`:**
+A simple 4-bit counter to test the GPIO IP.
+```c
+#include "io.h"
 
-**Steps:**
-1. Install the prerequisites i.e., general dependencies, FPGA toolchain & RISC-V toolchain.
-2. Clone the repository https://github.com/vsdip/vsdfpga_labs inside the current repository.
-3. Build the firmware and FPGA bitstream.
+void main() {
+    int counter = 0;
+    uint32_t read_val = 0;
 
-### Prerequisites installation
-**Commands:**
-```bash
-# General dependencies
-sudo apt-get install git vim autoconf automake autotools-dev curl libmpc-dev \
-libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool \
-patchutils bc zlib1g-dev libexpat1-dev gtkwave picocom -y
+    while (1) {
+        // CPU writes to the FPGA Register
+        IO_OUT(IO_GPIO_ADDR, counter);
 
-# FPGA toolchain (Yosys/NextPNR/IceStorm)
-sudo apt-get install yosys nextpnr-ice40 fpga-icestorm iverilog -y
+        // CPU reads back to verify
+        read_val = IO_IN(IO_GPIO_ADDR);
+        if (read_val != counter) {
+            printf("Error: Readback Failed!\n");
+        }
 
-# RISC-V Toolchain (GCC 8.3.0)
-cd ~
-mkdir -p riscv_toolchain && cd riscv_toolchain
-wget "https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-ubuntu14.tar.gz"
-tar -xvzf riscv64-unknown-elf-gcc-*.tar.gz
-echo 'export PATH=$HOME/riscv_toolchain/riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-ubuntu14/bin:$PATH' >> ~/.bashrc
-source ~/.bashrc
+        // Increment Counter
+        counter++;
+        if (counter > 15) counter = 0;
+        
+        // Large Delay for Visibility
+        for (volatile int i = 0; i < 500000; i++); 
+    }
+}
 ```
 
-### Cloning the repository 
-**Commands:**
-```bash
-git clone https://github.com/vsdip/vsdfpga_labs
+**Update Driver `io.h`:**
+```h
+#include <stdint.h>
+
+#define IO_BASE       0x400000
+
+// Bit 0 set -> Offset 4
+#define IO_GPIO_ADDR  4
+#define IO_UART_DAT   8
+#define IO_UART_CNTL  16
+
+#define IO_IN(port)       *(volatile uint32_t*)(IO_BASE + port)
+#define IO_OUT(port,val)  *(volatile uint32_t*)(IO_BASE + port)=(val)
 ```
-
-**Verification of successful cloning:**
-![](images/12.png)
-
-### Building the Firmware and FPGA bitstream 
-#### **Reviewing RISC-V Logo code :**
-**Commands:**
-```bash
-cd vsdfpga_labs/basicRISCV/Firmware
-nano riscv_logo.c  # Review and close (Ctrl+X)
-make riscv_logo.bram.hex
-```
-
-**Output:**
-![](images/13.png)
-
-#### **Build Firmware and FPGA bitstream :**
-**Commands:**
-```bash
-cd ../RTL
-make clean
-sed -i 's/-abc9 -device u -dsp //g' Makefile
-make build
-```
-
-**Output:**
-
-![](images/14.png)
 ___
-## Local Machine Preparation
+## Performing Simulation
 
->Perform the same setup as GitHub Codespaces on Local Machine (Alma Linux 8)
+**Create Simulation Environment:**
+- Create `sim_cells.v` to mock Lattice iCE40 specific blocks (`SB_HFOSC`).
+```verilog
+`timescale 1ns/1ps
 
-**Steps:**
-1. Install RISC-V Toolchain & build Spike ISA Simulator and RISC-V Proxy Kernel.
-2. Clone the `vsd-riscv2` and `vsdfpga_labs` repositories in a parent directory.
-3. Test the RISC-V toolchain by compiling and running a program.
-4. Setup and verify the working of FPGA toolchain.
+// Mock Lattice iCE40 Oscillator
+module SB_HFOSC (
+    input       CLKHFEN,
+    input       CLKHFPU,
+    output reg  CLKHF
+);
+    parameter CLKHF_DIV = "0b00";
+    initial CLKHF = 0;
+    always #41.666 CLKHF = ~CLKHF; // ~12MHz
+endmodule
 
-### RISC-V Toolchain Installation
-**Commands:**
-```bash
-# Install EPEL and enable PowerTools to find development libraries
-sudo dnf install -y epel-release
-sudo dnf config-manager --set-enabled powertools # On some versions: --set-enabled crb
+// Mock Lattice iCE40 PLL (Pass-through)
+module SB_PLL40_CORE (
+    input   REFERENCECLK,
+    output  PLLOUTCORE,
+    output  PLLOUTGLOBAL,
+    input   EXTFEEDBACK,
+    input   DYNAMICDELAY,
+    output  LOCK,
+    input   BYPASS,
+    input   RESETB,
+    input   LATCHINPUTVALUE,
+    input   SDI,
+    input   SCLK,
+    input   SHIFTREG_O
+);
+    parameter FEEDBACK_PATH = "SIMPLE";
+    parameter PLLOUT_SELECT = "GENCLK";
+    parameter DIVR = 4'b0000;
+    parameter DIVF = 7'b0000000;
+    parameter DIVQ = 3'b000;
+    parameter FILTER_RANGE = 3'b000;
 
-# Install core dependencies
-sudo dnf groupinstall -y "Development Tools"
-sudo dnf install -y \
-    git curl wget vim gcc-c++ make pkgconfig \
-    autoconf automake libtool bison flex \
-    gperf texinfo help2man gawk \
-    libmpc-devel mpfr-devel gmp-devel \
-    zlib-devel expat-devel dtc libfdt-devel \
-    python3 python3-pip ncurses-devel readline-devel \
-    boost-devel cairo-devel fontconfig-devel \
-    libX11-devel libXext-devel libXrender-devel libXpm-devel libXaw-devel
-
-# Install RISC-V Toolchain
-sudo mkdir -p /opt/riscv
-sudo chown $USER:$USER /opt/riscv
-cd /tmp
-wget -q https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-ubuntu14.tar.gz
-tar -xzf riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-ubuntu14.tar.gz
-mv riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-ubuntu14/* /opt/riscv/
-rm -rf riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-ubuntu14.tar.gz
-
-# Build Spike
-git clone --depth 1 https://github.com/riscv-software-src/riscv-isa-sim.git
-cd riscv-isa-sim
-mkdir build && cd build
-../configure --prefix=/opt/riscv
-make -j$(nproc)
-sudo make install
-cd /tmp && rm -rf riscv-isa-sim
-
-# Build RISC-V Proxy Kernel
-git clone https://github.com/riscv-software-src/riscv-pk.git
-cd riscv-pk
-git checkout v1.0.0
-mkdir build && cd build
-export PATH="/opt/riscv/bin:$PATH"
-../configure --prefix=/opt/riscv --host=riscv64-unknown-elf
-make -j$(nproc)
-sudo make install
-cd /tmp && rm -rf riscv-pk
-
-# Add RISC-V tools and Spike to .bashrc
-echo 'export PATH="$PATH:/opt/riscv/bin:/opt/riscv/riscv64-unknown-elf/bin"' >> ~/.bashrc
-source ~/.bashrc
+    assign PLLOUTCORE = REFERENCECLK;
+    assign PLLOUTGLOBAL = REFERENCECLK;
+    assign LOCK = 1'b1;
+endmodule
 ```
 
-### Cloning the repositories 
-**Commands:**
-```bash
-git clone https://github.com/vsdip/vsd-riscv2
-git clone https://github.com/vsdip/vsdfpga_labs
-```
+- Create `tb.v` (Testbench) to instantiate the SoC, generate Reset/Power, and run the simulation for sufficient time.
+```verilog
+`timescale 1ns/1ps
 
-### Testing RISC-V Toolchain
-**RISC-V GCC Commands:**
-```bash
-cd vsd-riscv2/samples/
-riscv64-unknown-elf-gcc -o sum1ton.o sum1ton.c
-spike pk sum1ton.o
-```
-
-**Output:**
-![](images/15.jpeg)
-
-**Native GCC Commands:**
-```bash
-gcc sum1ton.c
-./a.out
-```
-
-**Output:**
-
-![](images/16.jpeg)
-
-### FPGA Toolchain Installation and Testing 
-**Installation Commands:**
-```bash
-# Install General Dependencies
-sudo dnf install -y patch bc gtkwave picocom minicom libftdi-devel libftdi
-
-# Use OSS CAD Suite to install FPGA toolchain (Yosys, NextPNR, Icestorm)
-cd ~
-wget https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2024-01-01/oss-cad-suite-linux-x64-20240101.tgz
-tar -xvzf oss-cad-suite-linux-x64-*.tgz
-echo 'export PATH=$HOME/oss-cad-suite/bin:$PATH' >> ~/.bashrc
-
-# Install `iceprog`
-cd /tmp
-git clone https://github.com/YosysHQ/icestorm.git
-cd icestorm
-make -j$(nproc)
-sudo make install
-
-# Configure USB Permissions
-cd /etc/udev/rules.d
-touch 53-lattice-ftdi.rules
-echo 'ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", MODE="0666", GROUP="plugdev", TAG+="uaccess"' >> 53-lattice-ftdi.rules
-echo 'ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6014", MODE="0666", GROUP="plugdev", TAG+="uaccess"' >> 53-lattice-ftdi.rules
-sudo udevadm control --reload-rules && sudo udevadm trigger
-```
-
-**Build and Flash Commands:**
-```bash
-# Build the Firmware and FPGA Bitstream
-cd vsdfpga_labs/basicRISCV/Firmware
-make riscv_logo.bram.hex
-cd ../RTL
-make clean
-sed -i 's/-abc9 -device u -dsp //g' Makefile
-make build
-
-# Flash to FPGA
-make flash
-
-# Run the program
-make terminal
-```
-
-**Firmware Build Output:**
-![](images/17.jpeg)
-
-**Flash Verification:**
-
-![](images/18.jpeg)
-
-**Glance of FPGA:**
-
-![](images/19.jpeg)
-___
-## Understanding Check
-
->**1. Where is the RISC-V program located in the vsd-riscv2 repository?**
-
-- The RISC-V source programs are located in the **`samples`** folder.
-- Specific files include **`sum1ton.c`** (C code), **`load.S`** (Assembly code), and **`1ton_custom.c`** (C code). 
-- To access them in the environment, we navigate using the command: `cd samples`.
-
-
->**2. How is the program compiled and loaded into memory?**
-
-- The GNU Toolchain is used for compilation and the Spike simulator is used for loading and execution:
-- **Compilation:** The C program is compiled using the *GCC cross-compiler*.
-    - Command: `riscv64-unknown-elf-gcc -o <output_name>.o <input_file>.c`.
-    - This creates an ELF object file (e.g., `sum1ton.o`).
+module testbench;
+    // Inputs to SoC
+    reg RESET;
+    reg RXD;
     
-- **Loading:** The program is loaded and executed using the *Spike ISA Simulator* combined with the *Proxy Kernel (pk)*.    
-    - Command: `spike pk <output_name>.o`.
-    - The Proxy Kernel (`pk`) serves as a lightweight bootloader/OS that loads the ELF file into the simulated memory and handles system calls.
+    // Outputs from SoC
+    wire [3:0] LEDS; // GPIO counter
+    wire TXD;
 
+    // Instantiate the SoC
+    SOC uut (
+        .RESET(RESET),
+        .LEDS(LEDS), 
+        .RXD(RXD),
+        .TXD(TXD)
+    );
 
->**3. How does the RISC-V core access memory and memory-mapped IO?**
+    initial begin
+        $dumpfile("gpio_test.vcd");
+        $dumpvars(0, testbench);
 
-- The RISC-V architecture uses a *Load/Store architecture* for all memory accesses:
-	- **Memory Access:** The core moves data between memory and registers using dedicated instructions like `lw` (load word) and `sw` (store word). It cannot perform arithmetic operations directly on memory addresses; data must first be loaded into a register.
-    
-	- **Memory-Mapped I/O (MMIO):** RISC-V does not have special "IN" or "OUT" instructions for Input/Output. Instead, I/O devices (like an IP block) are assigned specific addresses in the main memory map. The core communicates with these devices by reading from and writing to these specific memory addresses using the same standard load/store instructions.
+        // Initialize Inputs
+        RXD = 1;
+        RESET = 0; 
+        
+        // Reset Sequence (Pulse Reset High)
+        #100 RESET = 1; 
+        #100 RESET = 0; 
 
+        // Run simulation
+        // Wait long enough for the C-code to execute a few loops
+        #600000; 
+        $finish;
+    end
+endmodule
+```
 
->**4. Where would a new FPGA IP block logically integrate in this system?**
+**Execute Simulation:**
+1. Comment out the delay loop in software application `gpio.c` to speed up the simulation.
+2. Convert it to a `.hex` file.
+   ```bash
+   cd ./basicRISCV/Firmware
+   make gpio.bram.hex
+   ```
+3. Simulate the SoC.
+   ```bash
+   cd ../RTL
+   iverilog -D BENCH -o gpio_test tb.v riscv.v simple_gpio_output_ip.v sim_cells.v
+   vvp gpio_test
+   ```
+4. Observe the waveform.
+   ```bash
+   gtkwave gpio_test.vcd
+   ```
+   
+___
+## Performing Hardware Validation
 
-- A new FPGA IP block would logically integrate onto the *System Bus* (interconnect). The IP block connects to the bus that links the RISC-V core to memory and other peripherals. To the software (like the C programs in `samples`), the IP block appears as a set of registers at a specific base address. The driver code would define a pointer to this address (e.g., `#define IP_BASE 0x10000000`) and read/write to it to control the hardware.
+**Steps:**
+1. Uncomment the delay loop in software application `gpio.c` and rewrite the `gpio.bram.hex` file. This delay provides visibility of change in real-time.
+2. Update the first line in `build` section of `Makefile` in `RTL` directory as follows -
+   ```bash
+   yosys  -q -p "synth_ice40 -top $(TOP) -json $(TOP).json" $(VERILOG_FILE) simple_gpio_output_ip.v
+   ```
+3. Perform the Synthesis & Flash through `Yosys (Synth) → Nextpnr (Place & Route) → Icepack (Bitstream)`.
+   ```bash
+   make build
+   make flash
+   ```
+4. Make the physical connections and observe the output.
+
