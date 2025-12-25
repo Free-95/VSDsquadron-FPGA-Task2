@@ -1,4 +1,4 @@
-module gpio_ip (
+module simple_gpio_output_ip (
     input             clk,
     input             resetn,
     // Bus Interface
@@ -7,7 +7,7 @@ module gpio_ip (
     input      [31:0] i_wdata,    // Data from CPU
     output     [31:0] o_rdata,    // Data to CPU (Readback)
     // External Interface
-    output      [3:0] o_gpio      // Mapped to System LEDs
+    output      [3:0] o_gpio
 );
 
    reg [31:0] storage;
@@ -30,7 +30,7 @@ module gpio_ip (
 endmodule
 
 // --- FOR HARDWARE TEST ---
-//module gpio_ip (
+//module simple_gpio_output_ip (
 //    input             clk,
 //    input             resetn,
 //    input             i_sel,

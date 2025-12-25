@@ -15,8 +15,8 @@ void main() {
         }
 
         // Increment Counter
-        counter++;
-        if (counter > 15) counter = 0;
+        counter++;        
+	if (counter > 15) counter = 0;
         
         // Large Delay for Visibility
         for (volatile int i = 0; i < 500000; i++); 

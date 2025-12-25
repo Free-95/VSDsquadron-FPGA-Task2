@@ -422,7 +422,7 @@ module SOC (
    );
 
    // GPIO IP
-   gpio_ip MyGPIO (
+   simple_gpio_output_ip MyGPIO (
        .clk(clk),
        .resetn(resetn),
        .i_sel(gpio_sel),
